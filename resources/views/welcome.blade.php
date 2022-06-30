@@ -16,7 +16,8 @@
     <div class="py-6">
 
             <div class="ml-5 mr-5">
-                <users-table>  </users-table>
+
+                <data-table endpoint="{{ route('users.index') }}"> </data-table>
 
             </div>
     </div>
