@@ -9,7 +9,12 @@
             <tr>
               <th v-for="column in response.displayables" scope="col"
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {{ column }}
+                <span class="sortable" @click="sortBy(column)">{{ column }}</span>
+                <div
+                    class="arrow"
+                    v-if="sort.key === column"
+                    :class="{'arrow--asc' : sort.order === 'asc', 'arrow--desc': sort.order === 'desc'}"
+                ></div>
               </th>
               <th scope="col" class="relative px-6 py-3">
                 <span class="sr-only">Edit</span>
@@ -17,7 +22,7 @@
             </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="records in response.records">
+            <tr v-for="records in filteredRecords">
               <td v-for="columnValue in records" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ columnValue }}
               </td>
@@ -34,24 +39,39 @@
 </template>
 
 <script>
-const people = [
-  {name: 'Jane Cooper', title: 'Regional Paradigm Technician', role: 'Admin', email: 'jane.cooper@example.com'},
-  // More people...
-]
 
 export default {
-  setup() {
-    return {
-      people,
-    }
-  },
+
   props: ['endpoint'],
   data() {
     return {
       response: {
         displayables: [],
         records: []
+      },
+      sort: {
+        key: 'id',
+        order: 'asc',
       }
+    }
+  },
+  computed: {
+    filteredRecords() {
+      let data = this.response.records
+
+      if (this.sort.key) {
+        // With Lodash
+        data = _.orderBy(data, (i) => {
+          let value = i[this.sort.key]
+          // isNaN is Not A Number
+          if (!isNaN(parseFloat(value))) {
+            return parseFloat(value)
+          }
+          return String(i[this.sort.key]).toLowerCase()
+        }, this.sort.order)
+      }
+
+      return data
     }
   },
   mounted() {
@@ -63,7 +83,40 @@ export default {
           .then((response) => {
             this.response = response.data.data
           })
+    },
+    sortBy(column) {
+      this.sort.key = column
+      this.sort.order = this.sort.order === 'asc' ? 'desc' : 'asc'
     }
   }
 }
 </script>
+
+<style lang="css">
+.sortable {
+  cursor: pointer
+}
+
+.arrow {
+  display: inline-block;
+  vertical-align: middle;
+  width: 0;
+  height: 0;
+  margin-left: 5px;
+  opacity: .6;
+}
+
+.arrow--asc {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid #222;
+}
+
+.arrow--desc {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #222;
+}
+
+
+</style>
