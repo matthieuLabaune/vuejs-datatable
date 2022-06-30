@@ -12,4 +12,11 @@ class UserDatatableController extends DatatableController
     {
         return User::query(); //Builder
     }
+
+    public function getDisplayableColumns(): array
+    {
+        return [
+            'id', 'name', 'email', 'created_at'
+        ];
+    }
 }
