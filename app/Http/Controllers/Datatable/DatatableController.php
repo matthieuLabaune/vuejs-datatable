@@ -19,9 +19,6 @@ abstract class DatatableController extends Controller
      */
     abstract public function builder(): mixed;
 
-    /**
-     *
-     */
     public function __construct()
     {
         $builder = $this->builder();
@@ -34,14 +31,12 @@ abstract class DatatableController extends Controller
      */
     public function index(): JsonResponse
     {
-
         return response()->json([
             'data' => [
                 'displayables' => array_values($this->getDisplayableColumns()),
                 'records' => $this->getRecords(),
             ]
         ]);
-
     }
 
     /**
@@ -58,7 +53,6 @@ abstract class DatatableController extends Controller
     public function getDatabaseColumnNames(): array
     {
         return Schema::getColumnListing($this->builder->getModel()->getTable());
-
     }
 
     /**

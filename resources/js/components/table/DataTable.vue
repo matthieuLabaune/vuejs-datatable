@@ -3,6 +3,21 @@
   <div class="flex flex-col">
     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
       <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+
+        <div class="min-w-0 flex-1 md:px-8 lg:px-0 xl:col-span-6">
+          <div class="flex items-center px-6 py-4 md:max-w-3xl md:mx-auto lg:max-w-none lg:mx-0 xl:px-0">
+            <div class="w-full">
+              <label for="search" class="sr-only">Rechercher</label>
+              <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
+                  <SearchIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+                <input id="filter" v-model="quickSearchQuery" name="search" class="block w-full bg-white border border-gray-300 rounded-md py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:outline-none focus:text-gray-900 focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Search" type="search" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -10,10 +25,9 @@
               <th v-for="column in response.displayables" scope="col"
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <span class="sortable" @click="sortBy(column)">{{ column }}</span>
-                <div
-                    class="arrow"
-                    v-if="sort.key === column"
-                    :class="{'arrow--asc' : sort.order === 'asc', 'arrow--desc': sort.order === 'desc'}"
+                <div class="arrow"
+                     v-if="sort.key === column"
+                     :class="{'arrow--asc' : sort.order === 'asc', 'arrow--desc': sort.order === 'desc'}"
                 ></div>
               </th>
               <th scope="col" class="relative px-6 py-3">
@@ -39,9 +53,12 @@
 </template>
 
 <script>
+import {SearchIcon} from "@heroicons/vue/solid";
 
 export default {
-
+  components:{
+    SearchIcon
+  },
   props: ['endpoint'],
   data() {
     return {
@@ -52,12 +69,19 @@ export default {
       sort: {
         key: 'id',
         order: 'asc',
-      }
+      },
+      quickSearchQuery: ''
     }
   },
   computed: {
     filteredRecords() {
       let data = this.response.records
+
+      data = data.filter((row) => {
+        return Object.keys(row).some((key) => {
+          return String(row[key]).toLowerCase().indexOf(this.quickSearchQuery.toLowerCase()) > -1
+        })
+      })
 
       if (this.sort.key) {
         // With Lodash
@@ -117,6 +141,4 @@ export default {
   border-right: 4px solid transparent;
   border-top: 4px solid #222;
 }
-
-
 </style>
