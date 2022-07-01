@@ -39,7 +39,7 @@
             <thead class="bg-gray-50">
             <tr>
               <th v-for="column in response.displayables" scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  class="px-6 py-3 text-left text-xs font-medium font-semibold text-gray-700 uppercase tracking-wider">
                 <span class="sortable" @click="sortBy(column)">{{ column }}</span>
                 <div class="arrow"
                      v-if="sort.key === column"
@@ -53,12 +53,21 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
             <tr v-for="record in filteredRecords">
-              <td v-for="(columnValue, column) in record" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td v-for="(columnValue, column) in record" class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                 <!--    Show only if currently editing    -->
                 <template v-if="editing.id === record.id && isUpdatable(column)">
-                  <div class="form-group">
-                    <input type="text" class="form-control" v-model="editing.form[column]">
+                  <div class="mt-1 relative rounded-md shadow-sm">
+                    <input v-model="editing.form[column]" type="text"
+                           class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                           :class="{'border-2 border-red-300 text-red-900 mb-2': editing.errors[column]}"
+                    />
+                    <div v-if="editing.errors[column]"
+                         class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <ExclamationCircleIcon v-if="editing.errors[column]" class="h-5 w-5 text-red-500"/>
+                    </div>
                   </div>
+                  <p v-if="editing.errors[column]" class="text-sm text-red-600">
+                    {{ editing.errors[column][0] }}</p>
                 </template>
                 <!--    Show only if not currently editing    -->
                 <template v-else>
@@ -73,7 +82,8 @@
                 <!--    Get back the editing.id value to null if we want to cancel the edit action    -->
                 <!--    Show only if currently editing    -->
                 <template v-if="editing.id === record.id">
-                  <a href="#" @click.prevent="update = null" class="text-green-600 hover:text-green-300">Enregistrer</a> <br>
+                  <a href="#" @click.prevent="update()" class="text-green-600 hover:text-green-300">Enregistrer</a>
+                  <br>
                   <a href="#" @click.prevent="editing.id = null" class="text-red-600 hover:text-red-300">Annuler</a>
                 </template>
               </td>
@@ -91,17 +101,18 @@
 <script>
 import {SearchIcon} from "@heroicons/vue/solid";
 import queryString from "query-string"
+import {ExclamationCircleIcon} from '@heroicons/vue/solid'
 
 export default {
   components: {
-    SearchIcon
+    SearchIcon, ExclamationCircleIcon,
   },
   props: ['endpoint'],
   data() {
     return {
       response: {
         displayables: [],
-        updatables:[],
+        updatables: [],
         records: []
       },
       sort: {
@@ -170,8 +181,16 @@ export default {
     isUpdatable(column) {
       return this.response.updatables.includes(column)
     },
-    update(){
-
+    update() {
+      axios.patch(`${this.endpoint}/${this.editing.id}`, this.editing.form)
+          .then(() => {
+            this.getRecords().then(() => {
+              this.editing.id = null
+              this.editing.form = {}
+            })
+          }).catch((error) => {
+        this.editing.errors = error.response.data.errors
+      })
     }
   }
 }

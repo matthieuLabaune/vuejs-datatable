@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Datatable;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class UserDatatableController extends DatatableController
 {
@@ -25,5 +27,18 @@ class UserDatatableController extends DatatableController
         return [
             'name', 'email', 'created_at'
         ];
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function update($id, Request $request)
+    {
+        $this->validate($request, [
+            'name' => 'required',
+            'email' => 'required|email'
+        ]);
+
+        $this->builder->find($id)->update($request->only($this->getUpdatableColumns()));
     }
 }
