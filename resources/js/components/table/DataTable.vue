@@ -52,16 +52,29 @@
             </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="records in filteredRecords">
-              <td v-for="columnValue in records" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ columnValue }}
+            <tr v-for="record in filteredRecords">
+              <td v-for="(columnValue, column) in record" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <!--    Show only if currently editing    -->
+                <template v-if="editing.id === record.id && isUpdatable(column)">
+                  <div class="form-group">
+                    <input type="text" class="form-control" v-model="editing.form[column]">
+                  </div>
+                </template>
+                <!--    Show only if not currently editing    -->
+                <template v-else>
+                  {{ columnValue }}
+                </template>
               </td>
               <!--       EDIT BUTTON      -->
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <a href="#" @click.prevent="edit(record)" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                <!--    Show only if not currently editing    -->
+                <a href="#" @click.prevent="edit(record)" class="text-indigo-500 hover:text-indigo-300"
+                   v-if="editing.id !== record.id">Modifier</a>
                 <!--    Get back the editing.id value to null if we want to cancel the edit action    -->
-                <template>
-                <a href="#" @click.prevent="editing.id = null" class="text-red-600 hover:text-red-900">cancel</a>
+                <!--    Show only if currently editing    -->
+                <template v-if="editing.id === record.id">
+                  <a href="#" @click.prevent="update = null" class="text-green-600 hover:text-green-300">Enregistrer</a> <br>
+                  <a href="#" @click.prevent="editing.id = null" class="text-red-600 hover:text-red-300">Annuler</a>
                 </template>
               </td>
               <!--       END EDIT BUTTON      -->
@@ -88,6 +101,7 @@ export default {
     return {
       response: {
         displayables: [],
+        updatables:[],
         records: []
       },
       sort: {
@@ -151,7 +165,13 @@ export default {
       this.editing.errors = []
       this.editing.id = record.id
       // Method with lodash to pick up the value we wnat to update from a specific record
-      this.editing.form = _.pick(record, this.response.updatable)
+      this.editing.form = _.pick(record, this.response.updatables)
+    },
+    isUpdatable(column) {
+      return this.response.updatables.includes(column)
+    },
+    update(){
+
     }
   }
 }
