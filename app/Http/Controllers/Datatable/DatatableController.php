@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Datatable;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
 abstract class DatatableController extends Controller
@@ -29,12 +30,15 @@ abstract class DatatableController extends Controller
     /**
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         return response()->json([
             'data' => [
+                'table' => $this->builder->getModel()->getTable(),
                 'displayables' => array_values($this->getDisplayableColumns()),
-                'records' => $this->getRecords(),
+                'updatables' => array_values($this->getUpdatableColumns()),
+                'records' => $this->getRecords($request),
+
             ]
         ]);
     }
@@ -50,6 +54,14 @@ abstract class DatatableController extends Controller
     /**
      * @return array
      */
+    public function getUpdatableColumns(): array
+    {
+        return $this->getDisplayableColumns();
+    }
+
+    /**
+     * @return array
+     */
     public function getDatabaseColumnNames(): array
     {
         return Schema::getColumnListing($this->builder->getModel()->getTable());
@@ -58,8 +70,8 @@ abstract class DatatableController extends Controller
     /**
      * @return mixed
      */
-    protected function getRecords(): mixed
+    protected function getRecords(Request $request): mixed
     {
-        return $this->builder->get($this->getDisplayableColumns());
+        return $this->builder->limit($request->limit)->get($this->getDisplayableColumns());
     }
 }

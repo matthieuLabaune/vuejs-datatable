@@ -19,4 +19,11 @@ class UserDatatableController extends DatatableController
             'id', 'name', 'email', 'created_at'
         ];
     }
+
+    public function getUpdatableColumns(): array
+    {
+        return [
+            'name', 'email', 'created_at'
+        ];
+    }
 }
