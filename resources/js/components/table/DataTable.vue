@@ -1,12 +1,51 @@
-<!-- This example requires Tailwind CSS v2.0+ -->
 <template>
   <div class="flex flex-col">
     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-      <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+      <div class="py-2 min-w-full sm:px-6 lg:px-8">
         <!--        SEARCH BAR      -->
-        <div class="grid grid-cols-4 gape-4">
+        <form action="#" @submit.prevent="getRecords">
+          <div class="grid grid-cols-4 content-end gap-4 py-4">
+            <div class="col-span-1">
+              <select v-model="search.column"
+                  class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                <option :value="column" v-for="column in response.displayables">{{ column }}</option>
+              </select>
+            </div>
+            <div class="col-span-1">
+              <select v-model="search.operator"
+                      class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                <option value="equals">=</option>
+                <option value="contains">contient</option>
+                <option value="starts_with">commence par</option>
+                <option value="ends_with">fini par</option>
+                <option value="greater_than">plus grand que</option>
+                <option value="less_than">plus petit que</option>
+              </select>
+            </div>
+            <div class="col-span-2">
+              <div>
+                <!--              <label for="email" class="block text-sm font-medium text-gray-700">Search candidates</label>-->
+                <div class="flex rounded-md shadow-sm">
+                  <div class="relative flex items-stretch flex-grow focus-within:z-10">
+                    <input v-model="search.value"
+                           class="focus:ring-indigo-500 focus:border-indigo-500 block w-full rounded-none rounded-l-md pl-4 sm:text-sm border-gray-300"
+                           placeholder="Rechercher"/>
+                  </div>
+                  <button type="submit"
+                          class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    <!--                  <SortAscendingIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />-->
+                    <span>Rechercher</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!--        SEARCH BAR      -->
+        <div class="grid grid-cols-4 content-end gap-4 py-4">
           <div class="col-span-3">
-            <div class="flex items-center py-4 md:max-w-3xl md:mx-auto lg:max-w-none lg:mx-0 xl:px-0">
+            <div class="flex md:max-w-3xl md:mx-auto lg:max-w-none lg:mx-0 xl:px-0">
               <div class="w-full">
                 <label for="search" class="sr-only">Rechercher</label>
                 <div class="relative">
@@ -14,16 +53,20 @@
                     <SearchIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
                   </div>
                   <input id="filter" v-model="quickSearchQuery" name="search"
-                         class="block w-full bg-white border border-gray-300 rounded-md py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:outline-none focus:text-gray-900 focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                         placeholder="Rechercher" type="search"/>
+                         class="block w-full bg-white border border-gray-300 rounded-md pl-10 pr-3 text-sm placeholder-gray-500 focus:outline-none focus:text-gray-900 focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                         placeholder="Recherche générale" type="search"/>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-span-1">
-            <div class="flex items-center py-4 md:max-w-3xl md:mx-auto lg:max-w-none lg:mx-0 xl:px-0">
-              <label for="limit">Display records</label>
-              <select id="limit" class="form-control" v-model="limit" @change="getRecords">
+          <div class="flex justify-self-end col-span-1">
+            <div class="">
+              <!--                -->
+              <!--    ADD TO PROPS AS OPTIONS   -->
+              <!--                -->
+              <label class="sr-only block text-xs font-medium text-gray-700">Nombre d'enregistrements</label>
+              <select id="limit" v-model="limit" @change="getRecords"
+                      class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
@@ -37,6 +80,7 @@
         <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
+            <!--       TABLE HEADER    -->
             <tr>
               <th v-for="column in response.displayables" scope="col"
                   class="px-6 py-3 text-left text-xs font-medium font-semibold text-gray-700 uppercase tracking-wider">
@@ -46,10 +90,14 @@
                      :class="{'arrow--asc' : sort.order === 'asc', 'arrow--desc': sort.order === 'desc'}"
                 ></div>
               </th>
+              <!--                -->
+              <!--    ADD TO PROPS AS OPTIONS EDITABLE INPUT IN TABLE EDIT LINK TO EDIT PAGE OR NOT EDITABLE   -->
+              <!--                -->
               <th scope="col" class="relative px-6 py-3">
                 <span class="sr-only">Edit</span>
               </th>
             </tr>
+            <!--       END TABLE HEADER    -->
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
             <tr v-for="record in filteredRecords">
@@ -101,11 +149,11 @@
 <script>
 import {SearchIcon} from "@heroicons/vue/solid";
 import queryString from "query-string"
-import {ExclamationCircleIcon} from '@heroicons/vue/solid'
+import {ExclamationCircleIcon, SortAscendingIcon} from '@heroicons/vue/solid'
 
 export default {
   components: {
-    SearchIcon, ExclamationCircleIcon,
+    SearchIcon, ExclamationCircleIcon, SortAscendingIcon
   },
   props: ['endpoint'],
   data() {
@@ -125,6 +173,11 @@ export default {
         id: null,
         form: {},
         errors: [],
+      },
+      search: {
+        value: '',
+        operator: 'equals',
+        column: 'id'
       }
     }
   },
@@ -164,7 +217,8 @@ export default {
     },
     getQueryParameters() {
       return queryString.stringify({
-        limit: this.limit
+        limit: this.limit,
+        ...this.search
       })
     },
     sortBy(column) {

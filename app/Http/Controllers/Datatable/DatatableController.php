@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Datatable;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Arr;
 
 abstract class DatatableController extends Controller
 {
@@ -73,10 +75,78 @@ abstract class DatatableController extends Controller
     }
 
     /**
+     * @param Request $request
      * @return mixed
      */
     protected function getRecords(Request $request): mixed
     {
-        return $this->builder->limit($request->limit)->orderBy('id')->get($this->getDisplayableColumns());
+        $builder = $this->builder;
+
+        if ($this->hasSearchQuery($request)) {
+            $builder = $this->buildSearch($builder, $request);
+        }
+
+        try {
+            return $this->builder->limit($request->limit)->orderBy('id')->get($this->getDisplayableColumns());
+        } catch (QueryException $exception) {
+            return [];
+        }
+
+
+    }
+
+    /**
+     * @param Request $request
+     * @return bool
+     */
+    protected function hasSearchQuery(Request $request): bool
+    {
+        return count(array_filter($request->only(['column', 'operator', 'value']))) === 3;
+    }
+
+    /**
+     * @param Builder $builder
+     * @param Request $request
+     * @return Builder
+     */
+    protected function buildSearch(Builder $builder, Request $request): Builder
+    {
+        $queryParts = $this->resolveQueryParts($request->operator, $request->value);
+        return $builder->where($request->column, $queryParts['operator'], $queryParts['value']);
+    }
+
+    /**
+     * @param $operator
+     * @param $value
+     * @return array|\ArrayAccess|mixed
+     */
+    protected function resolveQueryParts($operator, $value): mixed
+    {
+        return Arr::get([
+            'equals' => [
+                'operator' => '=',
+                'value' => $value
+            ],
+            'contains' => [
+                'operator' => 'like',
+                'value' => "%{$value}%"
+            ],
+            'starts_with' => [
+                'operator' => 'like',
+                'value' => "{$value}%"
+            ],
+            'ends_with' => [
+                'operator' => 'like',
+                'value' => "%{$value}"
+            ],
+            'greater_than' => [
+                'operator' => '>',
+                'value' => $value
+            ],
+            'less_than' => [
+                'operator' => '<',
+                'value' => $value
+            ],
+        ], $operator);
     }
 }
