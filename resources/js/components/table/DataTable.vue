@@ -7,8 +7,8 @@
           <div class="grid grid-cols-4 content-end gap-4 py-4">
             <div class="col-span-1">
               <select v-model="search.column"
-                  class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                <option :value="column" v-for="column in response.displayables">{{ column }}</option>
+                      class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                <option :value="column" v-for="column in response.displayables">{{  response.custom_columns[column] || column }}</option>
               </select>
             </div>
             <div class="col-span-1">
@@ -33,8 +33,11 @@
                   </div>
                   <button type="submit"
                           class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    <!--                -->
+                    <!--    ADD A RESET OPTION   -->
+                    <!--                -->
                     <!--                  <SortAscendingIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />-->
-                    <span>Rechercher</span>
+                    <span>{{ search.active !== null ? 'Rechercher' : 'Annuler'  }}</span>
                   </button>
                 </div>
               </div>
@@ -54,7 +57,7 @@
                   </div>
                   <input id="filter" v-model="quickSearchQuery" name="search"
                          class="block w-full bg-white border border-gray-300 rounded-md pl-10 pr-3 text-sm placeholder-gray-500 focus:outline-none focus:text-gray-900 focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                         placeholder="Recherche générale" type="search"/>
+                         placeholder="Recherche dans la sélection" type="search"/>
                 </div>
               </div>
             </div>
@@ -84,7 +87,7 @@
             <tr>
               <th v-for="column in response.displayables" scope="col"
                   class="px-6 py-3 text-left text-xs font-medium font-semibold text-gray-700 uppercase tracking-wider">
-                <span class="sortable" @click="sortBy(column)">{{ column }}</span>
+                <span class="sortable" @click="sortBy(column)">{{ response.custom_columns[column] || column }}</span>
                 <div class="arrow"
                      v-if="sort.key === column"
                      :class="{'arrow--asc' : sort.order === 'asc', 'arrow--desc': sort.order === 'desc'}"

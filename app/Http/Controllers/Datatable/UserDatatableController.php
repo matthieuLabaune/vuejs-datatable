@@ -29,6 +29,15 @@ class UserDatatableController extends DatatableController
         ];
     }
 
+    public function getCustomColumnNames(): array
+    {
+        return [
+            'email' => 'Adresse email',
+            'name' => 'Identité',
+            'created_at' => 'Création'
+        ];
+    }
+
     /**
      * @throws ValidationException
      */
